@@ -2,11 +2,11 @@ from django.shortcuts import render
 
 # Create your views here.
 def home(request):
-    pass
+    return render (request,'accounts/dashboard.html')
 
 def products(request):
-    pass
+    return render (request,'accounts/products.html')
 
 
 def customer(request):
-    pass
+    return render (request,'accounts/customer.html')
