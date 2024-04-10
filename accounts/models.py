@@ -47,3 +47,5 @@ class Order(models.Model):
     stauts = models.CharField(max_length=100 , choices= STATUS)
     date_created = models.DateTimeField(auto_now_add=True,null= True)
     
+    def __str__(self):
+        return self.product

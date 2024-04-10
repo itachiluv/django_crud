@@ -7,12 +7,13 @@
 <div class="row">
     <div class="col-md">
         <div class="card card-body">
-            <h5>Customer: </h5>
+            <h5>Customer: {{customer.name | upper}}</h5>
             <hr>
             <a class="btn btn-outline-info  btn-sm btn-block" href>Update
                 Customer</a>
-            <a class="btn btn-outline-danger  btn-sm btn-block" href>Delete
-                Customer</a>
+            <a class="btn btn-outline-info  btn-sm btn-block"
+                href="{% url 'create_order' customer.id%}">Place
+                Order</a>
 
         </div>
     </div>
@@ -21,8 +22,8 @@
         <div class="card card-body">
             <h5>Contact Information</h5>
             <hr>
-            <p>Email:</p>
-            <p>Phone: </p>
+            <p>Email: {{customer.email}}</p>
+            <p>Phone: {{customer.phone}}</p>
         </div>
     </div>
 
@@ -30,7 +31,7 @@
         <div class="card card-body">
             <h5>Total Orders</h5>
             <hr>
-            <h1 style="text-align: center;padding: 10px"></h1>
+            <h1 style="text-align: center;padding: 10px">{{total_order}}</h1>
         </div>
     </div>
 </div>
@@ -39,7 +40,11 @@
 <div class="row">
     <div class="col">
         <div class="card card-body">
-
+            <h5>Search</h5>
+            <form method="get">
+                {{myfilter.form}}
+                <button class="btn btn-primary" type="submit">Search</button>
+            </form>
         </div>
     </div>
 
@@ -58,16 +63,16 @@
                     <th>Update</th>
                     <th>Remove</th>
                 </tr>
-                {% for order in orders %}
+                {% for order in order %}
                 <tr>
                     <td>{{order.product}}</td>
-                    <td>{{order.category}}</td>
+                    <td>{{order.product.category}}</td>
                     <td>{{order.date_created}}</td>
-                    <td>{{order.status}}</td>
-                    <td><a class="btn btn-sm btn-info"
-                            href>Update</a></td>
+                    <td>{{order.stauts}}</td>
+                    <td><a class="btn btn-sm btn-warning"
+                            href="{% url 'update_order' order.id%}">Update</a></td>
                     <td><a class="btn btn-sm btn-danger"
-                            href>Cancel</a></td>
+                            href="{% url 'delete_order' order.id %}">Cancel</a></td>
                 </tr>
                 {% endfor %}
             </table>

@@ -1,0 +1,16 @@
+{% extends 'accounts/main.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<p>Are You sure to delete this order <b>{{item.product}}</b> ?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="submit" value="submit" name="submit"
+        class="btn btn-danger btn-outline-danger">
+    <a href="{% url 'home'%}"
+        class="btn  btn-outline-warning">Back</a>
+</form>
+{% endblock %}
