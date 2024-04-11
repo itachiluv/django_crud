@@ -3,7 +3,57 @@ from django.shortcuts import render,redirect
 from .models import *
 from .forms import *
 from .filters import Orderfilter
-# Create your views here.
+from django.contrib import messages
+from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth.decorators import login_required
+from .decorators import unauthenticated_user,allowed_users,admin_only
+from django.contrib.auth.models import Group
+
+
+@unauthenticated_user
+def loginpage(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request,username = username, password = password)
+        
+        if user is not None:
+            login(request,user)
+            return redirect('home')
+        else:
+            messages.info(request,'Invalid Username or Password')
+        
+    context = {}
+    return render(request,'accounts/login.html',context)
+
+def logoutuser(request):
+    logout(request)
+    return redirect('loginpage')
+
+@unauthenticated_user
+def registerpage(request):
+    form = CreateUserForm()
+    if request.method == 'POST':
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            username = form.cleaned_data.get('username')
+            
+            group = Group.objects.get(name = 'customer')
+            user.groups.add(group)
+            
+            Customer.objects.create(user = user,)
+            
+            messages.success(request,'Account was Created for '+ username)
+            return redirect('loginpage')
+    context = {
+        'form':form
+    }
+    
+    return render(request,'accounts/register.html',context)
+
+@login_required(login_url='loginpage')
+@admin_only
 def home(request):
     order = Order.objects.all()
     customer = Customer.objects.all()
@@ -22,9 +72,11 @@ def home(request):
         'delivered':delivered,
         'pending':pending  
     }
-    
     return render (request,'accounts/dashboard.html',context)
 
+
+@login_required(login_url='loginpage')
+@allowed_users(allowed_roles=['admin'])
 def products(request):
     products = Product.objects.all()
     
@@ -34,9 +86,8 @@ def products(request):
         
     return render (request,'accounts/products.html',context)
 
-
+@login_required(login_url='loginpage')
 def customer(request,pk):
-    
     customer = Customer.objects.get(id = pk)
     order = customer.order_set.all()
     total_order = order.count()
@@ -49,10 +100,9 @@ def customer(request,pk):
         'total_order':total_order,
         'myfilter':myfilter
     }
-    
     return render (request,'accounts/customer.html',context)
 
-
+@login_required(login_url='loginpage')
 def create_order(request,pk):
     orderformset = inlineformset_factory(Customer,Order, fields=('product','stauts'))
     customer = Customer.objects.get(id = pk)
@@ -67,7 +117,7 @@ def create_order(request,pk):
     }
     return render(request,'accounts/order_form.html',context)
 
-
+@login_required(login_url='loginpage')
 def update_order(request,pk):
     
     order = Order.objects.get(id =pk)
@@ -80,8 +130,9 @@ def update_order(request,pk):
     context= {
         'form':form
     }
-    return render(request,'accounts/order_form.html',context)
+    return render(request,'accounts/update_order.html',context)
 
+@login_required(login_url='loginpage')
 def delete_order(request,pk):
     order = Order.objects.get(id = pk)
     context = {
@@ -91,3 +142,21 @@ def delete_order(request,pk):
         order.delete()
         return redirect('home')
     return render(request,'accounts/delete_order.html',context)
+
+@login_required(login_url='loginpage')
+@allowed_users(allowed_roles=['customer'])
+def userpage(request):
+    orders = request.user.customer.order_set.all()
+    order = Order.objects.all()
+    total_order = order.count()
+    
+    delivered = orders.filter(stauts = 'Delivered').count()
+    pending = orders.filter(stauts = 'Pending').count() 
+    
+    context = {
+        'orders':orders,
+        'total_order':total_order,
+        'pending':pending,
+        'delivered':delivered
+        }
+    return render(request,'accounts/user.html',context)
