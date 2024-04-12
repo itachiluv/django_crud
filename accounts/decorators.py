@@ -34,4 +34,7 @@ def admin_only(view_fun):
         
         if group =='admin':
             return view_fun(request,*args, **kwargs)
+        
+        return HttpResponse('You are Not allowed for this page') 
+        
     return wrapper_function

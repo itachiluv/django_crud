@@ -87,6 +87,7 @@ def products(request):
     return render (request,'accounts/products.html',context)
 
 @login_required(login_url='loginpage')
+@allowed_users(allowed_roles=['customer'])
 def customer(request,pk):
     customer = Customer.objects.get(id = pk)
     order = customer.order_set.all()
@@ -103,6 +104,7 @@ def customer(request,pk):
     return render (request,'accounts/customer.html',context)
 
 @login_required(login_url='loginpage')
+@allowed_users(allowed_roles=['admin'])
 def create_order(request,pk):
     orderformset = inlineformset_factory(Customer,Order, fields=('product','stauts'))
     customer = Customer.objects.get(id = pk)
@@ -118,6 +120,7 @@ def create_order(request,pk):
     return render(request,'accounts/order_form.html',context)
 
 @login_required(login_url='loginpage')
+@allowed_users(allowed_roles=['admin'])
 def update_order(request,pk):
     
     order = Order.objects.get(id =pk)
@@ -133,6 +136,7 @@ def update_order(request,pk):
     return render(request,'accounts/update_order.html',context)
 
 @login_required(login_url='loginpage')
+@allowed_users(allowed_roles=['admin'])
 def delete_order(request,pk):
     order = Order.objects.get(id = pk)
     context = {
@@ -160,3 +164,21 @@ def userpage(request):
         'delivered':delivered
         }
     return render(request,'accounts/user.html',context)
+
+
+
+@login_required(login_url='loginpage')
+@allowed_users(allowed_roles=['customer'])
+def account_settings(request):
+    customer = request.user.customer
+    form = CustomerForm(instance= customer)
+    if request.method == 'POST':
+        form = CustomerForm(request.POST,request.FILES, instance=customer)
+        if form.is_valid():
+            form.save()
+            
+    context = {
+        'form': form
+    }
+    return render(request,'accounts/account_settings.html',context)
+    
